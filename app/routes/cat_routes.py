@@ -85,7 +85,7 @@
 
 ######### Added from 03 Building an API
 
-from flask import Blueprint, abort, make_response, request
+from flask import Blueprint, abort, make_response, request, Response
 from ..db import db
 from app.models.cat import Cat
 
@@ -129,3 +129,66 @@ def get_all_cats():
             }
         )
     return cats_response
+
+######### Added from 04 Building an API Livecode -Read, Update and Delete
+
+@cats_bp.get("/<id>")
+def get_one_cat(id):
+    cat = validate_cat(id)
+
+    return {
+        "id": cat.id,
+        "name":cat.name,
+        "color": cat.color,
+        "personality": cat.personality
+    }
+
+# Update record
+@cats_bp.put("/<id>")
+def update_cat(id):
+    cat = validate_cat(id)
+
+    # Get information from request body
+    request_body = request.get_json()
+    
+    # Update database
+    cat.name = request_body["name"]
+    cat.color = request_body["color"]
+    cat.personality = request_body["personality"]
+
+    db.session.commit()
+
+    # mimetype default is html
+    return Response(status=204, mimetype='application/json')
+
+# Delte record
+@cats_bp.delete("/<id>")
+def delete_cat(id):
+    cat = validate_cat(id)
+
+    db.session.delete(cat)
+    db.session.commit()
+
+    # mimetype default is html
+    return Response(status=204, mimetype='application/json')
+
+
+
+def validate_cat(id):
+    try:
+        id = int(id)
+    except ValueError:
+        invalid = {'message': f"Cat id ({id}) is invalid."}
+        # 400 bad request
+        abort(make_response(invalid, 400))
+
+    query = db.select(Cat).where(Cat.id == id)
+    # use scalar to singular
+    # SQLAlchemry will return None if not found
+    cat = db.session.scalar(query)
+
+    if not cat:
+        not_found = {'message': f"Cat with id ({id}) not found"}
+        abort(make_response(not_found, 404))
+    
+    return cat
