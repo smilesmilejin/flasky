@@ -36,7 +36,7 @@ def get_all_cats():
     if color_param:
         query = query.where(Cat.color.ilike(f"%{color_param}%"))
     
-    query = query.order_by(Cat.name.desc)
+    query = query.order_by(Cat.name.desc())
 
     cats = db.session.scalars(query)
 
