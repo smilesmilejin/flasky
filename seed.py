@@ -2,12 +2,19 @@
 # no need to dwell on the `with my_app.app_context():`, other than to say
 # that the `db` reference won't work unless it runs with an app context
 
+# CREATE TABLE cat(
+#     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+#     name TEXT NOT NULL,
+#     color TEXT,
+#     personality TEXT
+# );
+
 from app import create_app, db
 from app.models.cat import Cat
 
-# This is needed if database is droped accidentally?
-from dotenv import load_dotenv 
-load_dotenv() 
+# # This is needed if database is droped accidentally?
+# from dotenv import load_dotenv 
+# load_dotenv() 
 
 my_app = create_app()
 with my_app.app_context():

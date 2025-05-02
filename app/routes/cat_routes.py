@@ -88,30 +88,33 @@
 from flask import Blueprint, abort, make_response, request, Response
 from ..db import db
 from app.models.cat import Cat
-
+from .route_utilities import validate_model
 
 cats_bp = Blueprint("cat_bp", __name__, url_prefix = "/cats")
 
 @cats_bp.post("")
 def create_cat():
     request_body = request.get_json()
-    name = request_body["name"]
-    color = request_body["color"]
-    personality = request_body["personality"]
 
-    new_cat = Cat(name=name, color=color, personality=personality)
 
+    # name = request_body["name"]
+    # color = request_body["color"]
+    # personality = request_body["personality"]
+    # new_cat = Cat(name=name, color=color, personality=personality)
+
+    new_cat= Cat.from_dict(request_body)
     db.session.add(new_cat)
     db.session.commit()
 
-    response = {
-        "id": new_cat.id,
-        "name": new_cat.name,
-        "color": new_cat.color,
-        "personality": new_cat.personality
-    }
+    # response = {
+    #     "id": new_cat.id,
+    #     "name": new_cat.name,
+    #     "color": new_cat.color,
+    #     "personality": new_cat.personality
+    # }
 
-    return response, 201
+    # Use instance method to dict() to create a dictionary
+    return new_cat.to_dict(), 201
 
 @cats_bp.get("")
 def get_all_cats():
@@ -127,7 +130,9 @@ def get_all_cats():
         query = query.where(Cat.color.ilike(f"%{color_param}"))
 
     # query = query.orderby(Cat.id.desc)
-    query = query.order_by(Cat.name)
+    # query = query.order_by(Cat.id)
+    query = query.order_by(Cat.name.desc())
+
 
     ######### End from 05 Building an API Livecode Query Params
 
@@ -136,13 +141,7 @@ def get_all_cats():
 
     cats_response = []
     for cat in cats:
-        cats_response.append(
-            {
-                "id": cat.id,
-                "name": cat.name,
-                "color": cat.color,
-                "personality": cat.personality
-            }
+        cats_response.append(cat.to_dict()
         )
     return cats_response
 
@@ -150,19 +149,17 @@ def get_all_cats():
 
 @cats_bp.get("/<id>")
 def get_one_cat(id):
-    cat = validate_cat(id)
+    # we changes validate_model(cls, model_id)
+    cat = validate_model(Cat, id)
+    # cat = validate_cat(id)
 
-    return {
-        "id": cat.id,
-        "name":cat.name,
-        "color": cat.color,
-        "personality": cat.personality
-    }
+    return cat.to_dict()
 
 # Update record
 @cats_bp.put("/<id>")
 def update_cat(id):
-    cat = validate_cat(id)
+    # cat = validate_cat(id)
+    cat = validate_model(Cat, id)
 
     # Get information from request body
     request_body = request.get_json()
@@ -180,7 +177,8 @@ def update_cat(id):
 # Delte record
 @cats_bp.delete("/<id>")
 def delete_cat(id):
-    cat = validate_cat(id)
+    cat = validate_model(Cat, id)
+    # cat = validate_cat(id)
 
     db.session.delete(cat)
     db.session.commit()
@@ -190,21 +188,42 @@ def delete_cat(id):
 
 
 
-def validate_cat(id):
-    try:
-        id = int(id)
-    except ValueError:
-        invalid = {'message': f"Cat id ({id}) is invalid."}
-        # 400 bad request
-        abort(make_response(invalid, 400))
+# def validate_cat(id):
+#     try:
+#         id = int(id)
+#     except ValueError:
+#         invalid = {'message': f"Cat id ({id}) is invalid."}
+#         # 400 bad request
+#         abort(make_response(invalid, 400))
 
-    query = db.select(Cat).where(Cat.id == id)
-    # use scalar to singular
-    # SQLAlchemry will return None if not found
-    cat = db.session.scalar(query)
+#     query = db.select(Cat).where(Cat.id == id)
+#     # use scalar to singular
+#     # SQLAlchemry will return None if not found
+#     cat = db.session.scalar(query)
 
-    if not cat:
-        not_found = {'message': f"Cat with id ({id}) not found"}
-        abort(make_response(not_found, 404))
+#     if not cat:
+#         not_found = {'message': f"Cat with id ({id}) not found"}
+#         abort(make_response(not_found, 404))
     
-    return cat
+#     return cat
+
+# Move this to another file
+# def validate_model(cls, model_id):
+#     try:
+#         id = int(model_id)
+#     except ValueError:
+#         invalid = {'message': f"{cls.__name__} id ({model_id}) is invalid."}
+#         # 400 bad request
+#         abort(make_response(invalid, 400))
+
+#     # change Cat to cls
+#     query = db.select(cls).where(cls.id == model_id)
+#     # use scalar to singular
+#     # SQLAlchemry will return None if not found
+#     model = db.session.scalar(query)
+
+#     if not model:
+#         not_found = {'message': f"{cls.__name__} with id ({model_id}) not found"}
+#         abort(make_response(not_found, 404))
+    
+#     return model
