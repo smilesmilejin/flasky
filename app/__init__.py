@@ -1,6 +1,6 @@
 from flask import Flask
 from .db import db, migrate
-from .routes.cat_routes import cats_bp
+from .routes.cat_routes import bp as cats_bp
 from .models import cat
 import os
 

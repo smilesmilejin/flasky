@@ -1,21 +1,26 @@
-from flask import Blueprint, request, Response
+from flask import abort, Blueprint, make_response, request, Response
 from .route_utilities import validate_model
 from ..db import db
 from app.models.cat import Cat
 
-cats_bp = Blueprint("cats_bp", __name__, url_prefix = "/cats")
+bp = Blueprint("cats_bp", __name__, url_prefix = "/cats")
 
-@cats_bp.post("")
+@bp.post("")
 def create_cat():
     request_body = request.get_json()
-    new_cat = Cat.from_dict(request_body)
+
+    try:
+        new_cat = Cat.from_dict(request_body)
+    except KeyError as e:
+        response = {"message": f"Invalid request: missing {e.args[0]}"}
+        abort(make_response(response, 400))
 
     db.session.add(new_cat)
     db.session.commit()
 
     return new_cat.to_dict(), 201
 
-@cats_bp.get("")
+@bp.get("")
 def get_all_cats():
     query = db.select(Cat)
 
@@ -37,13 +42,13 @@ def get_all_cats():
 
     return cats_response
 
-@cats_bp.get("/<id>")
+@bp.get("/<id>")
 def get_one_cat(id):
     cat = validate_model(Cat, id)
 
     return cat.to_dict()
 
-@cats_bp.put("/<id>")
+@bp.put("/<id>")
 def update_cat(id):
     cat = validate_model(Cat, id)
     request_body = request.get_json()
@@ -55,7 +60,7 @@ def update_cat(id):
     db.session.commit()
     return Response(status=204, mimetype="application/json")
 
-@cats_bp.delete("/<id>")
+@bp.delete("/<id>")
 def delete_cat(id):
     cat = validate_model(Cat, id)
     db.session.delete(cat)
