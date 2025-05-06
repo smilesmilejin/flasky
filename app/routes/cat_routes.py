@@ -88,63 +88,70 @@
 from flask import Blueprint, abort, make_response, request, Response
 from ..db import db
 from app.models.cat import Cat
-from .route_utilities import validate_model
+from .route_utilities import validate_model, create_model, get_models_with_filters
 
 # blueprint is usually bp, when import give it an alis
 bp = Blueprint("cat_bp", __name__, url_prefix = "/cats")
 
 @bp.post("")
 def create_cat():
+
     request_body = request.get_json()
+    return create_model(Cat, request_body)
+
+    # request_body = request.get_json()
 
 
-    # name = request_body["name"]
-    # color = request_body["color"]
-    # personality = request_body["personality"]
-    # new_cat = Cat(name=name, color=color, personality=personality)
+    # # name = request_body["name"]
+    # # color = request_body["color"]
+    # # personality = request_body["personality"]
+    # # new_cat = Cat(name=name, color=color, personality=personality)
 
-    new_cat= Cat.from_dict(request_body)
-    db.session.add(new_cat)
-    db.session.commit()
+    # new_cat= Cat.from_dict(request_body)
+    # db.session.add(new_cat)
+    # db.session.commit()
 
-    # response = {
-    #     "id": new_cat.id,
-    #     "name": new_cat.name,
-    #     "color": new_cat.color,
-    #     "personality": new_cat.personality
-    # }
+    # # response = {
+    # #     "id": new_cat.id,
+    # #     "name": new_cat.name,
+    # #     "color": new_cat.color,
+    # #     "personality": new_cat.personality
+    # # }
 
-    # Use instance method to dict() to create a dictionary
-    return new_cat.to_dict(), 201
+    # # Use instance method to dict() to create a dictionary
+    # return new_cat.to_dict(), 201
 
 @bp.get("")
 def get_all_cats():
-    ######### Added from 05 Building an API Livecode Query Params
-    query = db.select(Cat)
+    # Added from 07 Building an API one to many
+    return get_models_with_filters(Cat, request.args)
+
+    # ######### Added from 05 Building an API Livecode Query Params
+    # query = db.select(Cat)
     
-    name_param = request.args.get("name")
-    if name_param:
-        query = query.where(Cat.name == name_param)
+    # name_param = request.args.get("name")
+    # if name_param:
+    #     query = query.where(Cat.name == name_param)
     
-    color_param = request.args.get("color")
-    if color_param:
-        query = query.where(Cat.color.ilike(f"%{color_param}"))
+    # color_param = request.args.get("color")
+    # if color_param:
+    #     query = query.where(Cat.color.ilike(f"%{color_param}"))
 
-    # query = query.orderby(Cat.id.desc)
-    # query = query.order_by(Cat.id)
-    query = query.order_by(Cat.name.desc())
+    # # query = query.orderby(Cat.id.desc)
+    # # query = query.order_by(Cat.id)
+    # query = query.order_by(Cat.name.desc())
 
 
-    ######### End from 05 Building an API Livecode Query Params
+    # ######### End from 05 Building an API Livecode Query Params
 
-    # query = db.select(Cat).order_by(Cat.id)
-    cats = db.session.scalars(query)
+    # # query = db.select(Cat).order_by(Cat.id)
+    # cats = db.session.scalars(query)
 
-    cats_response = []
-    for cat in cats:
-        cats_response.append(cat.to_dict()
-        )
-    return cats_response
+    # cats_response = []
+    # for cat in cats:
+    #     cats_response.append(cat.to_dict()
+    #     )
+    # return cats_response
 
 ######### Added from 04 Building an API Livecode -Read, Update and Delete
 
