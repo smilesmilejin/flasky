@@ -1,5 +1,5 @@
-from flask import abort, Blueprint, make_response, request, Response
-from .route_utilities import validate_model
+from flask import Blueprint, request, Response
+from .route_utilities import validate_model, create_model, get_models_with_filters
 from ..db import db
 from app.models.cat import Cat
 
@@ -9,38 +9,11 @@ bp = Blueprint("cats_bp", __name__, url_prefix = "/cats")
 def create_cat():
     request_body = request.get_json()
 
-    try:
-        new_cat = Cat.from_dict(request_body)
-    except KeyError as e:
-        response = {"message": f"Invalid request: missing {e.args[0]}"}
-        abort(make_response(response, 400))
-
-    db.session.add(new_cat)
-    db.session.commit()
-
-    return new_cat.to_dict(), 201
+    return create_model(Cat, request_body)
 
 @bp.get("")
 def get_all_cats():
-    query = db.select(Cat)
-
-    name_param = request.args.get("name")
-    if name_param:
-        query = query.where(Cat.name == name_param)
-
-    color_param = request.args.get("color")    
-    if color_param:
-        query = query.where(Cat.color.ilike(f"%{color_param}%"))
-    
-    query = query.order_by(Cat.name.desc())
-
-    cats = db.session.scalars(query)
-
-    cats_response = []
-    for cat in cats: 
-        cats_response.append(cat.to_dict())
-
-    return cats_response
+    return get_models_with_filters(Cat, request.args)
 
 @bp.get("/<id>")
 def get_one_cat(id):

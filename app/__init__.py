@@ -1,7 +1,8 @@
 from flask import Flask
 from .db import db, migrate
 from .routes.cat_routes import bp as cats_bp
-from .models import cat
+from .routes.caretaker_routes import bp as caretakers_bp
+from .models import cat, caretaker
 import os
 
 def create_app(config=None):
@@ -18,5 +19,6 @@ def create_app(config=None):
     migrate.init_app(app, db)
 
     app.register_blueprint(cats_bp)
+    app.register_blueprint(caretakers_bp)
 
     return app
