@@ -90,9 +90,10 @@ from ..db import db
 from app.models.cat import Cat
 from .route_utilities import validate_model
 
-cats_bp = Blueprint("cat_bp", __name__, url_prefix = "/cats")
+# blueprint is usually bp, when import give it an alis
+bp = Blueprint("cat_bp", __name__, url_prefix = "/cats")
 
-@cats_bp.post("")
+@bp.post("")
 def create_cat():
     request_body = request.get_json()
 
@@ -116,7 +117,7 @@ def create_cat():
     # Use instance method to dict() to create a dictionary
     return new_cat.to_dict(), 201
 
-@cats_bp.get("")
+@bp.get("")
 def get_all_cats():
     ######### Added from 05 Building an API Livecode Query Params
     query = db.select(Cat)
@@ -147,7 +148,7 @@ def get_all_cats():
 
 ######### Added from 04 Building an API Livecode -Read, Update and Delete
 
-@cats_bp.get("/<id>")
+@bp.get("/<id>")
 def get_one_cat(id):
     # we changes validate_model(cls, model_id)
     cat = validate_model(Cat, id)
@@ -156,7 +157,7 @@ def get_one_cat(id):
     return cat.to_dict()
 
 # Update record
-@cats_bp.put("/<id>")
+@bp.put("/<id>")
 def update_cat(id):
     # cat = validate_cat(id)
     cat = validate_model(Cat, id)
@@ -175,7 +176,7 @@ def update_cat(id):
     return Response(status=204, mimetype='application/json')
 
 # Delte record
-@cats_bp.delete("/<id>")
+@bp.delete("/<id>")
 def delete_cat(id):
     cat = validate_model(Cat, id)
     # cat = validate_cat(id)
